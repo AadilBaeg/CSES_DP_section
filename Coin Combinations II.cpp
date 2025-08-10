@@ -1,75 +1,67 @@
+// Problem: Coin Combinations II
+// Link: https://cses.fi/problemset/task/1636/
+// Thought process: I recognized this as a classic unbounded knapsack variation where order of coins 
+// does not matter — combinations, not permutations. I used an iterative DP with a rolling array to 
+// count the number of ways to make a sum `w` using given coin denominations, applying modulo to 
+// prevent overflow.
+
 #include <bits/stdc++.h>
 using namespace std;
-#define mod 1000000007
+
 #define int long long
-#define double long double
-#define pb push_back
-#define eb emplace_back
-#define endl '\n'
-#define pii pair<int,int>
-#define min3(a,b,c) min(a,min(b,c))
-#define max3(a,b,c) max(a,max(b,c))
-#define all(x) x.begin(),x.end()
-#define sz(x) (int)x.size()
-#define sp(x) setprecision(x)
-#define fi first
-#define se second
-#define lb lower_bound
-#define ub upper_bound
-#define bs binary_search
-#define inf 1000000000000000005LL
- 
- 
-int ceil(int a, int b) { // calculates ceil(a, b)
-    return (a+b-1)/b;
-}
- 
-int max(int a, int b) { //return max(a, b)
-    return a>b ? a : b;
-}
-int min(int a, int b) { //return min(a, b)
-    return a<b ?a : b;
-}
- 
-int binexp(int x, int n) { //return (x^n)%mod 
-    int ans = 1;
-    while(n>0) {
-        if(n%2)
-            ans = (ans*x)%mod;
-        x = (x*x)%mod;
-        n = n/2;
-    }
-    return ans;
-}
- 
-int arr[102], dp[2][1000002], n;
-void solve() {
-    int n, w; cin >> n >> w;
-    for(int i = 0 ; i < n ; i++)
-        cin >> arr[i];
-    memset(dp, 0, sizeof dp);
-    for(int i = 0 ; i < 2 ; i++)
-        dp[i][0] = 1;
- 
-    for(int i = 0 ; i < n ; i++){
-        for(int j = 0 ; j <= w; j++){
-            if(arr[i] <= j){
-                dp[i%2][j] = dp[i%2][j-arr[i]] + dp[1-i%2][j];
+
+class Solution {
+public:
+    int n, w;          // Number of coin types and target sum
+    int arr[102];      // Coin denominations
+    const int mod = 1e9 + 7;
+
+    // Iterative DP approach with rolling array optimization
+    int iterative_f() {
+        // dp[2][w+1]: Rolling array, dp[i%2][j] = number of ways to make sum j using first i coins
+        int dp[2][w + 1];
+        memset(dp, 0, sizeof dp);
+
+        // Base case: There is exactly 1 way to make sum 0 irrespective of the number of coins you have — take no coins
+        dp[0][0] = dp[1][0] = 1;
+
+        // Process each coin type one by one
+        for (int i = 0; i < n; i++) {
+            for (int j = 1; j <= w; j++) {
+                // By default, you can skip current coin
+                dp[i % 2][j] = dp[1 - i % 2][j];
+
+                // If we can use current coin without going negative
+                if (j - arr[i] >= 0) {
+                    // Add ways from the current row (plus, also allow multiple uses of the same coin)
+                    dp[i % 2][j] += dp[i % 2][j - arr[i]];
+                }
+
+                // Keep result within modulo limit
+                dp[i % 2][j] %= mod;
             }
-            else{
-                dp[i%2][j] = dp[1-i%2][j];
-            }
-            dp[i%2][j] %= mod;
         }
+
+        // Final result is in row (1 - n%2) after processing all coins
+        return dp[1 - n % 2][w];
     }
-    cout << dp[1-n%2][w];
-}
- 
- 
+
+    void solve() {
+        // Read inputs
+        cin >> n >> w;
+        for (int i = 0; i < n; i++) {
+            cin >> arr[i];
+        }
+
+        // Output result
+        cout << iterative_f();
+    }
+};
+
 signed main() {
-    int tc = 1;
-    // cin >> tc;
-    while(tc--){
-        solve();
-    }
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    Solution sol;
+    sol.solve();
 }
