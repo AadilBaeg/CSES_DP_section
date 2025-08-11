@@ -1,70 +1,62 @@
+// Problem: Book Shop
+// Link: https://cses.fi/problemset/task/1158/
+// Thought process: This is a classic 0/1 knapsack problem where we maximize the total number of pages 
+// we can buy without exceeding the budget `w`. I used an iterative DP with a rolling array to optimize memory, 
+// where dp[i%2][j] represents the maximum pages achievable using the first i books with budget j.
+
 #include <bits/stdc++.h>
 using namespace std;
-#define mod 1000000007
-#define int long long
-#define double long double
-#define pb push_back
-#define eb emplace_back
-#define endl '\n'
-#define pii pair<int,int>
-#define min3(a,b,c) min(a,min(b,c))
-#define max3(a,b,c) max(a,max(b,c))
-#define all(x) x.begin(),x.end()
-#define fill(a,b) memset(a,b,sizeof(a))
-#define sz(x) (int)x.size()
-#define sp(x) setprecision(x)
-#define fi first
-#define se second
-#define lb lower_bound
-#define ub upper_bound
-#define bs binary_search
-#define inf 1000000000000000005LL
- 
-int ceil(int a, int b) { // calculates ceil(a, b)
-    return (a+b-1)/b;
-}
- 
-int max(int a, int b) { //return max(a, b)
-    return a>b?a:b;
-}
- 
-int min(int a, int b) { //return min(a, b)
-    return a<b?a:b;
-}
- 
-int binexp(int x, int n) { //return (x^n)%mod 
-    int ans = 1;
-    while(n>0){
-        if(n%2)
-            ans=(ans*x)%mod;
-        x=(x*x)%mod;
-        n/=2;
-    }
-    return ans;
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////
- 
-int price[1002], val[1002];
-int dp[2][100002];
- 
-signed main() {
-    int n, w; cin >> n >> w;
-    for(int i = 0; i < n; i++)
-        cin >> price[i];
-    for(int i = 0; i < n; i++)
-        cin >> val[i];
-        
-    for(int i = 0 ; i < n ; i++) {
-        for(int j = 1 ; j <= w; j++) {
-            if(price[i] <= j) {
-                dp[i%2][j] = max(val[i] + dp[1- i%2][j-price[i]], dp[1-i%2][j]);
-            }
-            else {
-                dp[i%2][j] = dp[1-i%2][j];
+
+class Solution {
+public:
+    int n, w;                     // Number of books and maximum budget
+    vector<int> price, pages;      // Price and page count of each book
+
+    int solve_knapsack() {
+        // Rolling array for memory efficiency: dp[2][w+1]
+        int dp[2][w + 1];
+        memset(dp, 0, sizeof dp);
+
+        // Process each book
+        for (int i = 0; i < n; i++) {
+            for (int j = 1; j <= w; j++) {
+                int &ans = dp[i % 2][j];
+
+                // If we can afford this book, check taking it
+                if (j >= price[i]) {
+                    ans = pages[i] + dp[1 - i % 2][j - price[i]];
+                }
+                ans = max(ans, dp[1 - i % 2][j]); // also consider the option of not taking this book
             }
         }
+
+        // Final answer is in dp[1 - n%2][w]
+        return dp[1 - n % 2][w];
     }
- 
-    int ans = dp[1- n%2][w];
-    cout << ans;
+
+    void solve() {
+        cin >> n >> w;
+        price.resize(n);
+        pages.resize(n);
+
+        // Read book prices
+        for (int i = 0; i < n; i++) {
+            cin >> price[i];
+        }
+
+        // Read book page counts
+        for (int i = 0; i < n; i++) {
+            cin >> pages[i];
+        }
+
+        cout << solve_knapsack();
+    }
+};
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    Solution sol;
+    sol.solve();
 }
