@@ -1,92 +1,91 @@
+// CSES Problem: Array Description
+// Link: https://cses.fi/problemset/task/1746/
+//
+// My Thought Process:
+// I realized that the problem essentially asks for the count of valid arrays
+// where adjacent elements differ by at most 1. I decided to use DP with states
+// representing the remaining elements to fill and the last chosen value.
+// By filling from the end backwards, I can reuse results for overlapping subproblems.
+
 #include <bits/stdc++.h>
 using namespace std;
-#define mod 1000000007
-#define int long long
-#define double long double
-#define pb push_back
-#define eb emplace_back
-#define endl '\n'
-#define pii pair<int,int>
-#define min3(a,b,c) min(a,min(b,c))
-#define max3(a,b,c) max(a,max(b,c))
-#define all(x) x.begin(),x.end()
-#define fill(a,b) memset(a,b,sizeof(a))
-#define sz(x) (int)x.size()
-#define sp(x) setprecision(x)
-#define fi first
-#define se second
-#define lb lower_bound
-#define ub upper_bound
-#define bs binary_search
-#define inf 1000000000000000005LL
- 
-int ceil(int a, int b) { // calculates ceil(a, b)
-    return (a+b-1)/b;
-}
- 
-int max(int a, int b) { //return max(a, b)
-    return a>b ? a : b;
-}
- 
-int binexp(int x, int n) { //return (x^n)%mod 
-    int ans = 1;
-    while(n>0) {
-        if(n%2)
-            ans = (ans*x)%mod;
-        x = (x*x)%mod;
-        n /= 2;
-    }
-    return ans;
-}
-int dp[100002][102], m;
-int arr[100002];
-int f(int n, int last){
-    if(n==0) return 1;
-    if(n==1){
-        if(arr[n]!=0) return abs(last-arr[n]) <= 1;
-        else 1 + (last+1 <= m) + (last-1 >= 1);
-    }
-    int &ans = dp[n][last];
-    if(ans != -1) return ans;
- 
-    ans = 0;
- 
-    if(arr[n]!=0){
-        if(abs(last-arr[n])<=1){
-            ans = f(n-1, arr[n]);
-            ans %= mod;
-        }
-    }
-    else{
-        vector<int> v = {last-1, last, last+1};
-        for(auto i: v){
-            if(i<=m and i>=1){
-                ans += f(n-1, i);
-                ans %= mod;
+
+class Solution {
+public:
+    int m;                               // Upper bound for values in the array
+    vector<int> arr;                     // The given array (0 = wildcard position)
+    int mod = (int)1e9 + 7;               // Modulo for results
+    vector<vector<int>> dp;              // Memoization table: dp[remaining][lastEle]
+
+    // Recursive DP function
+    // n = number of elements left to process (from the end)
+    // lastEle = value of the next fixed element in the array
+    int f(int n, int lastEle) {
+        // Base case: no elements left to process → one valid way
+        if (n == 0) return 1;
+
+        // Special case: only one element left to process
+        if (n == 1) {
+            if (arr[n - 1] != 0) {
+                // If it's fixed, check adjacency condition with lastEle
+                return abs(arr[n - 1] - lastEle) <= 1;
+            } else {
+                // If it's a wildcard, it can be lastEle-1, lastEle, or lastEle+1 (within bounds)
+                return (lastEle - 1 >= 1) + 1 + (lastEle + 1 <= m);
             }
         }
-    }
-    return ans;
-}
-void solve() {
-    int n; cin >> n >> m;
-    memset(dp, -1, sizeof dp);
-    for(int i = 1 ; i <= n ; i++){
-        cin >> arr[i];
-    }
-    int ans = 0;
-    if(arr[n]!=0){
-        ans = f(n-1, arr[n]);
-    }
-    else{
-        for(int i = 1 ; i <= m ; i++){
-            ans += f(n-1, i);
-            ans %= mod;
+
+        // If already computed, return cached result
+        int &ans = dp[n][lastEle];
+        if (ans != -1) return ans;
+
+        ans = 0; // Initialize answer for this state
+
+        if (arr[n - 1] != 0) {
+            // Fixed value at position n-1
+            if (abs(arr[n - 1] - lastEle) <= 1) {
+                ans += f(n - 1, arr[n - 1]);
+                ans %= mod;
+            }
+        } else {
+            // Wildcard value at position n-1 → try all adjacent possibilities
+            for (auto i : {lastEle - 1, lastEle, lastEle + 1}) {
+                if (i >= 1 && i <= m) {
+                    ans += f(n - 1, i);
+                    ans %= mod;
+                }
+            }
         }
+
+        return ans;
     }
-    cout << ans;
-}
- 
-signed main() {
-    solve();
+
+    void solve() {
+        int n;
+        cin >> n >> m;
+        arr.resize(n);
+        dp.assign(n + 1, vector<int>(m + 1, -1));
+
+        for (auto &i : arr)
+            cin >> i;
+
+        int ans = 0;
+        if (arr[n - 1] == 0) {
+            // Last position is a wildcard → try all possible last values
+            for (int i = 1; i <= m; i++) {
+                ans += f(n - 1, i);
+                ans %= mod;
+            }
+        } else {
+            // Last position is fixed
+            ans += f(n - 1, arr.back());
+        }
+
+        cout << ans;
+    }
+};
+
+int main() {
+    Solution s;
+    s.solve();
 }
