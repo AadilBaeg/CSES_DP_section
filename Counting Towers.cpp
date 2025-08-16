@@ -1,81 +1,74 @@
+/*
+Problem: Domino Tiling
+Link: https://cses.fi/problemset/task/2413/
+
+My thought process: I noticed that for each length n, the number of ways depends on
+how the last few tiles are placed. I broke the problem into two states (tile = 1 or 2),
+used recursion with memoization, and derived the recurrence relations. Precomputing
+values up to the maximum n ensures fast answers for multiple test cases.
+*/
+
 #include <bits/stdc++.h>
 using namespace std;
-#define mod 1000000007
 #define int long long
-#define double long double
-#define pb push_back
-#define eb emplace_back
-#define endl '\n'
-#define pii pair<int,int>
-#define min3(a,b,c) min(a,min(b,c))
-#define max3(a,b,c) max(a,max(b,c))
-#define all(x) x.begin(),x.end()
-#define fill(a,b) memset(a,b,sizeof(a))
-#define sz(x) (int)x.size()
-#define sp(x) setprecision(x)
-#define fi first
-#define se second
-#define lb lower_bound
-#define ub upper_bound
-#define bs binary_search
-#define inf 1000000000000000005LL
- 
-int ceil(int a, int b) { // calculates ceil(a, b)
-    return (a+b-1)/b;
-}
- 
-int max(int a, int b) { //return max(a, b)
-    return a>b ? a : b;
-}
- 
-int binexp(int x, int n) { //return (x^n)%mod 
-    int ans = 1;
-    while(n>0) {
-        if(n%2)
-            ans = (ans*x)%mod;
-        x = (x*x)%mod;
-        n /= 2;
-    }
-    return ans;
-}
-/* this problem recurrence basically is a bit different from the solution written below
- the intuition almost same except wherever (n-1) is written in recursion it should be (n+1)
- and the base case will be if (i>=n) return 1; but I have done in this way so as to ease precomputation.
- */ 
-const int mex = 1000001;
-int dp[mex+1][3];
-int f(int n, int ps){   
-    if(n==1) return 1;
-    int &ans = dp[n][ps];
-    if(ans != -1) return ans;
-    ans = 0;
-    if(ps==1){
-        ans = f(n-1, 1) + f(n-1, 1) + f(n-1, 2); 
-    }
-    else{
-        ans = f(n-1, 2) + f(n-1, 2) + f(n-1, 1) + 2*f(n-1, 2);
-    }
-    ans %= mod;
-    return ans;
-}
-void pre(){
-    memset(dp, -1, sizeof dp);
-    int ans = 0;
-    for(int i = 1 ; i <= 2; i++){
-        ans += f(mex, i);
+
+const int mex = (int)1e6 + 2;
+const int mod = (int)1e9 + 7;
+
+// dp[n][tile] stores the number of ways for length n and ending tile type
+int dp[mex + 1][3];
+
+class Solution {
+public:
+    // Recursive function with memoization
+    int f(int n, int tile) {
+        // Base case: for length 1, only 1 way
+        if (n == 1) return 1;
+
+        int &ans = dp[n][tile];
+        if (ans != -1) return ans;
+
+        ans = 0;
+
+        if (tile == 1) {
+            // Case when the ending configuration is of type 1
+            // Transition from previous state (same or different)
+            ans = f(n - 1, 1) + f(n - 1, 1) + f(n - 1, 2);
+        } else {
+            // Case when the ending configuration is of type 2
+            // Transition involves more combinations (including double placement)
+            ans = f(n - 1, 2) + f(n - 1, 2) + f(n - 1, 1) + 2 * f(n - 1, 2);
+        }
+
         ans %= mod;
+        return ans;
     }
-}
- 
-signed main(){
+
+    void solve() {
+        memset(dp, -1, sizeof dp);
+        int tc; 
+        cin >> tc;
+
+        // Precompute values up to max constraint for efficiency
+        f(mex, 1);
+        f(mex, 2);
+
+        while (tc--) {
+            int n; 
+            cin >> n;
+            // Total ways is sum of both states
+            int ans = f(n, 1) + f(n, 2);
+            ans %= mod;
+            cout << ans << endl;
+        }
+    }
+};
+
+signed main() {
     ios::sync_with_stdio(false);
-    cin.tie(NULL);
-    pre();
-    int tc; cin >> tc;
-    while(tc--){
-        int n; cin >> n;
-        int ans = f(n, 1) + f(n, 2);
-        ans %= mod;
-        cout << ans << endl;
-    }
+    cin.tie(nullptr);
+
+    Solution sol;
+    sol.solve();
+    return 0;
 }
