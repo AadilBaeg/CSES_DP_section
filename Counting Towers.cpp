@@ -2,10 +2,33 @@
 Problem: Domino Tiling
 Link: https://cses.fi/problemset/task/2413/
 
-My thought process: I noticed that for each length n, the number of ways depends on
-how the last few tiles are placed. I broke the problem into two states (tile = 1 or 2),
-used recursion with memoization, and derived the recurrence relations. Precomputing
-values up to the maximum n ensures fast answers for multiple test cases.
+My thought process:
+
+Initially, I approached the problem by considering two states for each column:
+- tile type 1 (ending with vertical dominoes)
+- tile type 2 (ending with horizontal/L-shaped domino arrangements)
+
+This led to the recursive function f(n, tile) with memoization:
+- dp[n][tile] stores the number of ways to tile 2xn with the last column in state 'tile'.
+- Recurrence:
+    - f(n,1) = f(n-1,1) + f(n-1,1) + f(n-1,2)
+    - f(n,2) = f(n-1,2) + f(n-1,2) + f(n-1,1) + 2*f(n-1,2)
+
+With a bit of manipulation in above two equations, we can remove the second dimension s.t.
+dp[n] = f(n,1) + f(n,2), can be expressed as a simpler recurrence:
+
+    dp[n] = 4 * dp[n-1] + dp[n-2]
+
+- Base cases: dp[1] = 2 (vertical or horizontal), dp[2] = 8 (these two by manually observing and doing on rough page)
+- This eliminates the need for two states, allowing a **single 1-D DP**.
+- We can implement this either iteratively or recursively with memoization.
+
+Thus, fOptimized(n) implements this simpler 1-D recursive DP.
+*/
+
+/*
+Note: In this code, we still call the original f() for demonstration,
+but the optimized fOptimized() can be called instead for cleaner, faster computation.
 */
 
 #include <bits/stdc++.h>
@@ -15,28 +38,27 @@ using namespace std;
 const int mex = (int)1e6 + 2;
 const int mod = (int)1e9 + 7;
 
-// dp[n][tile] stores the number of ways for length n and ending tile type
+// Global memoization array for optimized recursive approach
+int memo[mex + 1];
+
+// Global dp array for original 2-D DP recursive approach
 int dp[mex + 1][3];
 
 class Solution {
 public:
-    // Recursive function with memoization
+    // Original recursive function with 2-D DP
     int f(int n, int tile) {
-        // Base case: for length 1, only 1 way
-        if (n == 1) return 1;
+        if (n == 1) return 1;  // Base case: only 1 way for length 1
 
         int &ans = dp[n][tile];
         if (ans != -1) return ans;
 
         ans = 0;
-
         if (tile == 1) {
-            // Case when the ending configuration is of type 1
-            // Transition from previous state (same or different)
+            // Ending with configuration type 1
             ans = f(n - 1, 1) + f(n - 1, 1) + f(n - 1, 2);
         } else {
-            // Case when the ending configuration is of type 2
-            // Transition involves more combinations (including double placement)
+            // Ending with configuration type 2
             ans = f(n - 1, 2) + f(n - 1, 2) + f(n - 1, 1) + 2 * f(n - 1, 2);
         }
 
@@ -44,9 +66,21 @@ public:
         return ans;
     }
 
+    // Optimized recursive function using 1-D DP
+    int fOptimized(int n) {
+        if (n == 1) return 2; // Base case: 2 ways for 2x1
+        if (n == 2) return 8; // Base case: 8 ways for 2x2
+
+        if (memo[n] != -1) return memo[n];
+
+        // Recurrence: total ways = 4*dp[n-1] + dp[n-2]
+        memo[n] = (4 * fOptimized(n - 1) + fOptimized(n - 2)) % mod;
+        return memo[n];
+    }
+
     void solve() {
-        memset(dp, -1, sizeof dp);
-        int tc; 
+        memset(dp, -1, sizeof dp); // Initialize global dp array
+        int tc;
         cin >> tc;
 
         // Precompute values up to max constraint for efficiency
@@ -54,12 +88,14 @@ public:
         f(mex, 2);
 
         while (tc--) {
-            int n; 
+            int n;
             cin >> n;
-            // Total ways is sum of both states
             int ans = f(n, 1) + f(n, 2);
             ans %= mod;
-            cout << ans << endl;
+            cout << ans << "\n";
+
+            // Alternatively, we could call the optimized single DP recursive solution:
+            // cout << fOptimized(n) << "\n";
         }
     }
 };
@@ -69,6 +105,11 @@ signed main() {
     cin.tie(nullptr);
 
     Solution sol;
+
+    // Initialize global memo array for fOptimized
+    memset(memo, -1, sizeof memo);
+
     sol.solve();
+
     return 0;
 }
