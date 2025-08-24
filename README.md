@@ -20,5 +20,6 @@ Your task:
   - main() simply creates an instance of the class and calls that function.
 - Go through the code and add concise, beginner-friendly, technically correct inline comments wherever you feel an explanation would help (especially for tricky logic or important steps).
 - Keep all variable names and the algorithm’s behavior the same unless a rename is required for clarity.
+- Also add time and space complexity analysis and the thought process behind the approach.
 - Return only the final annotated C++ file.
 ```
