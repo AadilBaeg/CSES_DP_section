@@ -39,28 +39,24 @@ private:
         int dp[MAX][MAX];
 
         // Initialize DP table with a large value
-        for (int i = 0; i < MAX; i++) {
-            for (int j = 0; j < MAX; j++) {
+        for (int i = 0; i < MAX; i++)
+            for (int j = 0; j < MAX; j++)
                 dp[i][j] = mex;
-            }
-        }
 
         // A square needs no cuts
-        for (int i = 0; i < MAX; i++) {
+        for (int i = 0; i < MAX; i++)
             dp[i][i] = 0;
-        }
 
         // Fill DP table bottom-up
         for (int i = 1; i <= a; i++) {
             for (int j = 1; j <= b; j++) {
                 // Try vertical cuts
-                for (int k = 1; k < i; k++) {
+                for (int k = 1; k < i; k++)
                     dp[i][j] = min(dp[i][j], 1 + dp[k][j] + dp[i - k][j]);
-                }
+                
                 // Try horizontal cuts
-                for (int k = 1; k < j; k++) {
+                for (int k = 1; k < j; k++)
                     dp[i][j] = min(dp[i][j], 1 + dp[i][k] + dp[i][j - k]);
-                }
             }
         }
 
@@ -90,3 +86,4 @@ signed main() {
     Solution solution;
     solution.solve();
 }
+
